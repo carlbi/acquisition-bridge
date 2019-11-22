@@ -241,6 +241,7 @@ class acquisitionProcessor():
                     self.rescue_commands_publisher.publish(rescue_cmd)
                     self.logger.info("rescue_cmd published")
                 if "newRescueTrigger" in incomingData:
+                    rescue_trigger = BoolStamped()
                     rescue_trigger = incomingData["newRescueTrigger"]
                     self.rescue_trigger_publisher.publish(rescue_trigger)
                     self.logger.info("rescue_trigger published")
