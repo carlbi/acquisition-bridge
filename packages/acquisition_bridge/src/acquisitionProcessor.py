@@ -237,12 +237,11 @@ class acquisitionProcessor():
                     self.logger.info("Emergency stop toggled")
                 if "newRescueMsg" in incomingData:
                     rescue_cmd = Twist2DStamped()
-                    rescue_cmd.data = incomingData["newRescueMsg"]
+                    rescue_cmd = incomingData["newRescueMsg"]
                     self.rescue_commands_publisher.publish(rescue_cmd)
                     self.logger.info("rescue_cmd published")
                 if "newRescueTrigger" in incomingData:
-                    rescue_trigger = Twist2DStamped()
-                    rescue_trigger.data = incomingData["newRescueTrigger"]
+                    rescue_trigger = incomingData["newRescueTrigger"]
                     self.rescue_trigger_publisher.publish(rescue_trigger)
                     self.logger.info("rescue_trigger published")
 

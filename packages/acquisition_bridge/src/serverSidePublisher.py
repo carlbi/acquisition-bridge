@@ -24,6 +24,12 @@ class publishingProcessor():
         self.requestImageSend = False
         self.newEmergencyMsg = False
         self.emergencyRelease = False
+        self.newRescueMsg = False
+        self.newRescueTrigger = False
+
+        self.rescue_msg = None
+        self.rescue_trigger = None
+        self.emergencyToggle = None
 
         self.node_name = rospy.get_name()
         self.veh_name = self.node_name.split("/")[1]
@@ -148,12 +154,12 @@ class publishingProcessor():
     def sendRescueCommands(self, data):
         self.logger.info("Got rescue_commands message")
         self.newRescueMsg = True
-        self.rescue_msg = data.data
+        self.rescue_msg =  data
 
     def sendRescueTrigger(self, data):
         self.logger.info("Rescue trigger toggled")
         self.newRescueTrigger = True
-        self.rescue_trigger = data.data
+        self.rescue_trigger = data
 
     def toggleEmergencyStop(self, data):
         self.logger.info("Got toggle message")
