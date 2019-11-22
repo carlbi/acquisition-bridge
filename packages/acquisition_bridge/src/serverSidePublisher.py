@@ -55,9 +55,9 @@ class publishingProcessor():
             self.subscriberEmergencyStop = rospy.Subscriber(
                 '/'+self.veh_name+'/'+"toggleEmergencyStop", Bool, self.toggleEmergencyStop,  queue_size=1)
             self.subscriberRescueTrigger = rospy.Subscriber(
-                '/'+self.veh_name+'/'+"rescue_trigger", BoolStamped, self.sendRescueTrigger,  queue_size=1)
+                '/'+self.veh_name+'/'+"/recovery_mode", BoolStamped, self.sendRescueTrigger,  queue_size=1)
             self.subscriberRescueCommands  = rospy.Subscriber(
-                '/'+self.veh_name+'/'+"rescue_commands", Twist2DStamped, self.sendRescueCommands,  queue_size=10)
+                '/'+self.veh_name+'/'+"/lane_recovery_node/car_cmd", Twist2DStamped, self.sendRescueCommands,  queue_size=10)
             self.logger.info("Acquisition node setup in Duckiebot mode")
         else:
             self.publish_lux = rospy.Publisher(
