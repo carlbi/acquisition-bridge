@@ -8,7 +8,7 @@ import os
 import Queue
 import collections
 import yaml
-from duckietown_msgs.msg import WheelsCmdStamped
+from duckietown_msgs.msg import WheelsCmdStamped, Twist2DStamped, BoolStamped
 import time
 
 
@@ -54,6 +54,10 @@ class publishingProcessor():
                 '/'+self.veh_name+'/ready_to_start', Bool, queue_size=1)
             self.subscriberEmergencyStop = rospy.Subscriber(
                 '/'+self.veh_name+'/'+"toggleEmergencyStop", Bool, self.toggleEmergencyStop,  queue_size=1)
+            self.subscriberRescueTrigger = rospy.Subscriber(
+                '/'+self.veh_name+'/'+"rescue_trigger", BoolStamped, self.sendRescueTrigger,  queue_size=1)
+            self.subscriberRescueCommands  = rospy.Subscriber(
+                '/'+self.veh_name+'/'+"rescue_commands", Twist2DStamped, self.sendRescueCommands,  queue_size=10)
             self.logger.info("Acquisition node setup in Duckiebot mode")
         else:
             self.publish_lux = rospy.Publisher(
@@ -119,17 +123,37 @@ class publishingProcessor():
                 inputDict['toggleEmergencyStop'] = self.emergencyToggle
                 self.logger.info("Emergency stop toggled")
 
+            if self.newRescueMsg:
+                inputDict['newRescueMsg'] = self.rescue_msg
+                self.logger.info("Rescue_msg send")
+
+            if self.newRescueTrigger:
+                inputDict['newRescueTrigger'] = self.rescue_trigger
+                self.logger.info("Rescue_trigger send")
+
             if inputDict:
                 inputDictQueue.put(obj=pickle.dumps(inputDict, protocol=-1),
                                    block=True,
                                    timeout=None)
                 self.requestImageSend = False
                 self.newEmergencyMsg = False
+                self.newRescueMsg = False
+                self.newRescueTrigger = False
 
     def requestImage(self, data):
         self.logger.info("Topic received")
         if data.data:
             self.requestImageSend = True
+
+    def sendRescueCommands(self, data):
+        self.logger.info("Got rescue_commands message")
+        self.newRescueMsg = True
+        self.rescue_msg = data.data
+
+    def sendRescueTrigger(self, data):
+        self.logger.info("Rescue trigger toggled")
+        self.newRescueTrigger = True
+        self.rescue_trigger = data.data
 
     def toggleEmergencyStop(self, data):
         self.logger.info("Got toggle message")

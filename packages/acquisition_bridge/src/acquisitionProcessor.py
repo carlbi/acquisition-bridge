@@ -9,7 +9,7 @@ import Queue
 import time
 import threading
 import cv2
-from duckietown_msgs.msg import WheelsCmdStamped, BoolStamped, LightSensor
+from duckietown_msgs.msg import WheelsCmdStamped, BoolStamped, LightSensor, Twist2DStamped
 from cv_bridge import CvBridge, CvBridgeError
 from duckietown_utils import get_duckiefleet_root
 import yaml
@@ -47,6 +47,10 @@ class acquisitionProcessor():
                 '/'+self.veh_name+'/'+self.acq_topic_wheel_command, WheelsCmdStamped, self.wheel_command_callback,  queue_size=5)
             self.emergency_stop_publisher = rospy.Publisher(
                 "/"+self.veh_name+"/wheels_driver_node/emergency_stop", BoolStamped, queue_size=1)
+            self.rescue_commands_publisher = rospy.Publisher(
+                "/"+self.veh_name+"/lane_recovery_node/car_cmd", Twist2DStamped, queue_size=1)
+            self.rescue_trigger_publisher = rospy.Publisher(
+                "/"+self.veh_name+"/recovery_mode", BoolStamped, queue_size=1)
             self.wheels_cmd_msg_list = []
             self.wheels_cmd_lock = threading.Lock()
         else:
@@ -231,6 +235,16 @@ class acquisitionProcessor():
                     stopMsg.data = incomingData["toggleEmergencyStop"]
                     self.emergency_stop_publisher.publish(stopMsg)
                     self.logger.info("Emergency stop toggled")
+                if "newRescueMsg" in incomingData:
+                    rescue_cmd = Twist2DStamped()
+                    rescue_cmd.data = incomingData["newRescueMsg"]
+                    self.rescue_commands_publisher.publish(rescue_cmd)
+                    self.logger.info("rescue_cmd published")
+                if "newRescueTrigger" in incomingData:
+                    rescue_trigger = Twist2DStamped()
+                    rescue_trigger.data = incomingData["newRescueTrigger"]
+                    self.rescue_trigger_publisher.publish(rescue_trigger)
+                    self.logger.info("rescue_trigger published")
 
             except KeyboardInterrupt:
                 raise(Exception("Exiting"))
