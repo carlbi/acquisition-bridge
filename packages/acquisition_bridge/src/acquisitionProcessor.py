@@ -54,7 +54,7 @@ class acquisitionProcessor():
             self.rescue_trigger_publisher = rospy.Publisher(
                 "/"+self.veh_name+"/recovery_mode", BoolStamped, queue_size=1)
             self.sub_fsm_mode = rospy.Subscriber(
-                '/'+self.veh_name+'/fsm_node/node', FSMState, self.fsm_mode_callback, queue_size=1)
+                '/'+self.veh_name+'/fsm_node/mode', FSMState, self.fsm_mode_callback, queue_size=1)
             self.wheels_cmd_msg_list = []
             self.wheels_cmd_lock = threading.Lock()
             self.fsm_mode = None
