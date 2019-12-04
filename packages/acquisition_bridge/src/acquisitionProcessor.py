@@ -9,7 +9,9 @@ import Queue
 import time
 import threading
 import cv2
-from duckietown_msgs.msg import WheelsCmdStamped, BoolStamped, LightSensor, Twist2DStamped
+from duckietown_msgs.msg import (
+    WheelsCmdStamped, BoolStamped, LightSensor, Twist2DStamped, FSMState
+)
 from cv_bridge import CvBridge, CvBridgeError
 from duckietown_utils import get_duckiefleet_root
 import yaml
@@ -51,8 +53,11 @@ class acquisitionProcessor():
                 "/"+self.veh_name+"/lane_recovery_node/car_cmd", Twist2DStamped, queue_size=1)
             self.rescue_trigger_publisher = rospy.Publisher(
                 "/"+self.veh_name+"/recovery_mode", BoolStamped, queue_size=1)
+            self.sub_fsm_mode = rospy.Subscriber(
+                '/'+self.veh_name+'/fsm_mode', FSMState, self.fsm_mode_callback, queue_size=1)
             self.wheels_cmd_msg_list = []
             self.wheels_cmd_lock = threading.Lock()
+            self.fsm_mode = None
         else:
             self.light_sensor_subscriber = rospy.Subscriber(
                 '/'+self.veh_name+'/light_sensor_node/sensor_data', LightSensor, self.cb_light_sensor, queue_size=1)
@@ -127,6 +132,9 @@ class acquisitionProcessor():
 
         with self.wheels_cmd_lock:
             self.wheels_cmd_msg_list.append(wheels_cmd)
+
+    def fsm_mode_callback(self, fsm_mode):
+        self.fsm_mode = fsm_mode
 
     def camera_image_process(self, currRawImage):
         with self.listLock:
@@ -208,6 +216,15 @@ class acquisitionProcessor():
                                             block=True,
                                             timeout=None)
                     self.wheels_cmd_msg_list = []
+                # fsm mode
+                if self.fsm_mode:
+                    outputDict = {"fsm_mode": self.fsm_mode}
+                    outputDictQueue.put(
+                        obj=pickle.dumps(outputDict, protocol=-1),
+                        block=True,
+                        timeout=None
+                    )
+                self.fsm_mode = None
             else:
                 if self.newMaskNorm:
                     self.newMaskNorm = False

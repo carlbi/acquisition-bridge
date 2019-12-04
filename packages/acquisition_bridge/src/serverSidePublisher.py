@@ -8,7 +8,9 @@ import os
 import Queue
 import collections
 import yaml
-from duckietown_msgs.msg import WheelsCmdStamped, Twist2DStamped, BoolStamped
+from duckietown_msgs.msg import (
+    WheelsCmdStamped, Twist2DStamped, BoolStamped, FSMState
+)
 import time
 
 
@@ -64,6 +66,8 @@ class publishingProcessor():
                 '/'+self.veh_name+'/'+"recovery_mode", BoolStamped, self.sendRescueTrigger,  queue_size=1)
             self.subscriberRescueCommands  = rospy.Subscriber(
                 '/'+self.veh_name+'/'+"lane_recovery_node/car_cmd", Twist2DStamped, self.sendRescueCommands,  queue_size=10)
+            self.pub_fsm_mode = rospy.Publisher(
+                '/'+self.veh_name+'/fsm_mode', FSMState, queue_size=5)
             self.logger.info("Acquisition node setup in Duckiebot mode")
         else:
             self.publish_lux = rospy.Publisher(
@@ -108,6 +112,8 @@ class publishingProcessor():
                     else:
                         readyMsg.data = False
                         self.ready_to_start.publish(readyMsg)
+                if "fsm_mode" in incomingData:
+                    self.pub_fsm_mode.publish(incomingData["fsm_mode"])
 
                 seq_stamper += 1
             except KeyboardInterrupt:
